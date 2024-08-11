@@ -1,0 +1,36 @@
+# .NET build directories
+bin/
+obj/
+
+# .NET user secrets
+.user secrets/
+
+# .NET configuration
+*.config
+*.json
+*.xml
+
+# NuGet packages
+*.nupkg
+*.snupkg
+**/*.nupkg
+**/*.snupkg
+
+# Local environment files
+.env
+
+# Logs
+*.log
+
+# IIS Express
+.vs/
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# JetBrains Rider
+.idea/
+
+# Visual Studio Code
