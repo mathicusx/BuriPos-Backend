@@ -1,22 +1,26 @@
-using BuriPosApi.Interfaces;
 using BuriPosApi.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace BuriPosApi.Features.Products.Controller
+using BuriPosApi.Interfaces;
+
+namespace BuriPosApi.Features.Products.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ProductController(IProductRepository productRepository) : ControllerBase
+    public class ProductController : ControllerBase
     {
-        private readonly IProductRepository _productRepository = productRepository;
+        private readonly IUnitOfWork _unitOfWork;
+
+        public ProductController(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
 
         // GET: api/product
         [HttpGet]
         public async Task<IActionResult> GetProducts()
         {
-            var products = await _productRepository.GetProductsAsync();
+            var products = await _unitOfWork.ProductRepository.GetProductsAsync();
             return Ok(products);
         }
 
@@ -24,15 +28,12 @@ namespace BuriPosApi.Features.Products.Controller
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProduct(int id)
         {
-            try
+            var product = await _unitOfWork.ProductRepository.FindProductByIdAsync(id);
+            if (product == null)
             {
-                var product = await _productRepository.FindByIdAsync(id);
-                return Ok(product);
+                return NotFound("Product not found.");
             }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
+            return Ok(product);
         }
 
         // POST: api/product
@@ -44,7 +45,8 @@ namespace BuriPosApi.Features.Products.Controller
                 return BadRequest("Product cannot be null.");
             }
 
-            await _productRepository.AddProductAsync(product);
+            await _unitOfWork.ProductRepository.AddProductAsync(product);
+            await _unitOfWork.CompleteAsync();
             return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
         }
 
@@ -52,15 +54,15 @@ namespace BuriPosApi.Features.Products.Controller
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
-            try
+            var product = await _unitOfWork.ProductRepository.FindProductByIdAsync(id);
+            if (product == null)
             {
-                await _productRepository.DeleteProductAsync(id);
-                return NoContent();
+                return NotFound("Product not found.");
             }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
+
+            await _unitOfWork.ProductRepository.DeleteProductAsync(id);
+            await _unitOfWork.CompleteAsync();
+            return NoContent();
         }
     }
 }

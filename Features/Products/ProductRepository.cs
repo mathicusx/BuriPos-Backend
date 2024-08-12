@@ -1,29 +1,50 @@
-using BuriPosApi.Interfaces;
+using BuriPosApi.Data;
+using BuriPosApi.Features.Products.Interfaces;
 using BuriPosApi.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace BuriPosApi.Data.Repo
+namespace BuriPosApi.Features.Products.Repo
 {
-    public class ProductRepository(AppDbContext appDbContext) : IProductRepository
+    public class ProductRepository : IProductRepository
     {
-        private readonly AppDbContext _appDbContext = appDbContext;
+        private readonly AppDbContext _appDbContext;
+
+        public ProductRepository(AppDbContext appDbContext)
+        {
+            _appDbContext = appDbContext;
+        }
 
         public async Task AddProductAsync(Product product)
         {
+            if (product == null)
+            {
+                throw new ArgumentNullException(nameof(product));
+            }
+
             await _appDbContext.Products.AddAsync(product);
-            await _appDbContext.SaveChangesAsync();
         }
 
         public async Task DeleteProductAsync(int productId)
         {
-            var product = await _appDbContext.Products.FindAsync(productId) ?? throw new KeyNotFoundException($"Product with ID {productId} not found.");
+            var product = await _appDbContext.Products.FindAsync(productId);
+            if (product == null)
+            {
+                throw new KeyNotFoundException($"Product with ID {productId} not found.");
+            }
+
             _appDbContext.Products.Remove(product);
-            await _appDbContext.SaveChangesAsync();
         }
 
-        public async Task<Product> FindByIdAsync(int id)
+        public async Task<Product> FindProductByIdAsync(long id)
         {
-            var product = await _appDbContext.Products.FindAsync(id) ?? throw new KeyNotFoundException($"Product with ID {id} not found.");
+            var product = await _appDbContext.Products.FindAsync(id);
+            if (product == null)
+            {
+                throw new KeyNotFoundException($"Product with ID {id} not found.");
+            }
+
             return product;
         }
 

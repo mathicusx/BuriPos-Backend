@@ -1,19 +1,25 @@
-using BuriPosApi.Data;
-using BuriPosApi.Data.Repo;
+using BuriPosApi.Features.Products.Interfaces;
 using BuriPosApi.Interfaces;
+using BuriPosApi.Data;
 
 namespace BuriPosApi.Data
 {
-    public class UnitOfWork(AppDbContext appDbContext) : IUnitOfWork
+    public class UnitOfWork : IUnitOfWork
     {
-        private readonly AppDbContext appDbContext = appDbContext;
+        private readonly AppDbContext _appDbContext;
+        private readonly IProductRepository _productRepository;
 
-        public IProductRepository ProductRepository =>
-            new ProductRepository(appDbContext);
+        public UnitOfWork(AppDbContext appDbContext, IProductRepository productRepository)
+        {
+            _appDbContext = appDbContext;
+            _productRepository = productRepository;
+        }
+
+        public IProductRepository ProductRepository => _productRepository;
 
         public async Task<int> CompleteAsync()
         {
-            return await appDbContext.SaveChangesAsync();
+            return await _appDbContext.SaveChangesAsync();
         }
     }
 }
